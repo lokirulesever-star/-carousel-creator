@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Instala fontes e dependências do sistema
+# Instala fontes para renderização dos slides
 RUN apt-get update && apt-get install -y \
     fonts-dejavu-core \
     fonts-liberation \
@@ -8,15 +8,15 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copia e instala dependências Python
+# Instala dependências primeiro (cache eficiente)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o projeto completo
+# Copia o projeto
 COPY . .
 
-# Expõe a porta usada pelo Railway
+# Porta padrão (Railway injeta $PORT em runtime)
 EXPOSE 8080
 
-# Inicia o servidor apontando para a pasta backend
-CMD ["uvicorn", "backend.server:app", "--host", "0.0.0.0", "--port", "8080"]
+# Comando de inicialização — usa $PORT injetado pelo Railway
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}
